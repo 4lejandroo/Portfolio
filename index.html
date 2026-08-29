@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alejandro Rojas Muena — Ingeniero en Informática</title>
+<meta name="description" content="Portafolio de Alejandro Rojas Muena, Ingeniero en Informática. Desarrollo web y móvil: React, Next.js, Flutter, .NET, Django, Supabase.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0d0b;
+    --ink:#e9ece3;
+    --dim:#98a29a;
+    --acc:#57ff9a;
+    --acc-soft:rgba(87,255,154,.06);
+    --line:rgba(233,236,227,.13);
+    --mono:'IBM Plex Mono',monospace;
+    --sans:'Space Grotesk',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+  body.locked{overflow:hidden}
+  ::selection{background:var(--acc);color:#06120a}
+
+/* 
+     PANTALLA DE CARGA — Pac-Man
+*/
+  #loader{--pac:#FDD835;--dot-a:#1E88E5;--dot-b:#F44336;
+          position:fixed;inset:0;z-index:60;background:var(--bg);
+          display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.6rem;
+          transition:opacity .55s ease}
+  #loader.done{opacity:0;pointer-events:none}
+  /* escena: alto total 120px = 2 filas de 10px + Pac-Man de 100px */
+  #loader .scene{position:relative;width:300px;height:120px}
+  #loader .dots{position:relative;top:65px;display:flex;justify-content:center;align-items:center}
+  #loader .dots2{position:relative;top:55px;display:flex;justify-content:center;align-items:center}
+  #loader .dot{position:relative;width:10px;height:10px;margin:0 10px;border-radius:50%;
+               background:var(--dot-a);animation:dot1 5s linear 0s infinite normal}
+  #loader .dot:nth-child(1){animation-delay:-.16s}
+  #loader .dot:nth-child(2){animation-delay:.03s}
+  #loader .dot:nth-child(3){animation-delay:.22s}
+  #loader .dot:nth-child(4){animation-delay:.41s}
+  #loader .dot:nth-child(5){animation-delay:.59s}
+  #loader .dot:nth-child(6){animation-delay:.78s}
+  #loader .dot:nth-child(7){animation-delay:.97s}
+  #loader .dot:nth-child(8){animation-delay:1.16s}
+  #loader .dot:nth-child(9){animation-delay:1.34s}
+  #loader .dot:nth-child(10){animation-delay:1.53s}
+  #loader .dot2{position:relative;width:10px;height:10px;margin:0 10px;border-radius:50%;
+                background:var(--dot-b);opacity:0;animation:dot2 5s linear 0s infinite normal}
+  #loader .dot2:nth-child(1){animation-delay:4.08s}
+  #loader .dot2:nth-child(2){animation-delay:3.89s}
+  #loader .dot2:nth-child(3){animation-delay:3.71s}
+  #loader .dot2:nth-child(4){animation-delay:3.52s}
+  #loader .dot2:nth-child(5){animation-delay:3.33s}
+  #loader .dot2:nth-child(6){animation-delay:3.14s}
+  #loader .dot2:nth-child(7){animation-delay:2.96s}
+  #loader .dot2:nth-child(8){animation-delay:2.77s}
+  #loader .dot2:nth-child(9){animation-delay:2.58s}
+  #loader .dot2:nth-child(10){animation-delay:2.39s}
+  /* el Pac-Man: 0x0 con bordes de 50px → círculo de 100px */
+  #loader .circle{position:relative;left:-100px;width:0;height:0;
+                  border:50px solid var(--pac);border-radius:50%;border-right-color:transparent;
+                  animation:move 5s linear 0s infinite normal}
+  #loader .circle:before,#loader .circle:after{content:"";position:absolute;top:-50px;left:-50px;width:0;height:0;
+                  border:50px solid var(--pac);border-radius:50%;border-right-color:transparent}
+  #loader .circle:before{animation:chomp1 .25s ease-in-out 0s infinite normal}
+  #loader .circle:after{animation:chomp2 .25s ease-in-out 0s infinite normal}
+  #loader .load-sub{font-family:var(--mono);font-size:.68rem;letter-spacing:.22em;color:var(--dim)}
+  #loader .load-sub b{color:var(--acc);font-weight:500}
+  @keyframes chomp1{0%{transform:rotate(0)}50%{transform:rotate(45deg)}100%{transform:rotate(0)}}
+  @keyframes chomp2{0%{transform:rotate(0)}50%{transform:rotate(-45deg)}100%{transform:rotate(0)}}
+  @keyframes move{0%,100%{left:-100px}0%,48%{transform:rotateY(0)}50%,100%{transform:rotateY(180deg)}50%{left:100%}}
+  @keyframes dot1{0%,4%{background:var(--dot-a);opacity:1}5%,94%{opacity:0}95%,100%{background:var(--dot-a);opacity:1}}
+  @keyframes dot2{0%,4%{background:var(--dot-b);opacity:1}5%,94%{opacity:0}95%,100%{background:var(--dot-b);opacity:1}}
+
+  /* ---- Canvas 3D ---- */
+  #gl{position:fixed;inset:0;z-index:0;cursor:grab;opacity:0;transition:opacity 1s ease .1s}
+  #gl.ready{opacity:1}
+  #gl:active{cursor:grabbing}
+  @media(max-width:860px){ #gl{opacity:0} #gl.ready{opacity:.35} }
+
+  /* ---- Navegación ---- */
+  nav{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:space-between;
+      padding:1rem 2.2rem;transition:background .4s,border-color .4s;border-bottom:1px solid transparent}
+  nav.scrolled{background:rgba(11,13,11,.72);backdrop-filter:blur(10px);border-bottom-color:var(--line)}
+  .logo{display:flex;align-items:center;gap:.7rem;text-decoration:none;color:var(--ink)}
+  .logo .box{width:34px;height:34px;border:1px solid var(--acc);display:grid;place-items:center;
+             font-family:var(--mono);font-size:.8rem;color:var(--acc);flex-shrink:0}
+  .logo span.name{font-family:var(--mono);font-size:.75rem;letter-spacing:.14em;color:var(--dim)}
+  .nav-links{display:flex;gap:1.8rem;align-items:center}
+  .nav-links a{color:var(--dim);text-decoration:none;font-size:.85rem;letter-spacing:.02em;position:relative;transition:color .25s}
+  .nav-links a::after{content:'';position:absolute;left:0;bottom:-4px;width:0;height:1px;background:var(--acc);transition:width .3s}
+  .nav-links a:hover,.nav-links a.active{color:var(--ink)}
+  .nav-links a:hover::after,.nav-links a.active::after{width:100%}
+  .nav-links a.cta{border:1px solid var(--line);padding:.5rem 1rem;color:var(--ink)}
+  .nav-links a.cta:hover{border-color:var(--acc);color:var(--acc)}
+  .nav-links a.cta::after{display:none}
+  @media(max-width:860px){ .nav-links a:not(.cta){display:none} nav{padding:.9rem 1.2rem} .logo span.name{display:none} }
+
+  /* ---- Dots laterales ---- */
+  #dots{position:fixed;right:1.5rem;top:50%;transform:translateY(-50%);z-index:20;display:flex;flex-direction:column;gap:1rem}
+  #dots button{width:9px;height:9px;border-radius:50%;border:1px solid var(--dim);background:transparent;cursor:pointer;
+               position:relative;transition:all .3s;padding:0}
+  #dots button.active{background:var(--acc);border-color:var(--acc);transform:scale(1.35)}
+  #dots button .tip{position:absolute;right:20px;top:50%;transform:translateY(-50%);white-space:nowrap;
+        font-family:var(--mono);font-size:.65rem;letter-spacing:.12em;color:var(--acc);opacity:0;transition:opacity .25s;pointer-events:none;text-transform:uppercase}
+  #dots button:hover .tip{opacity:1}
+  @media(max-width:860px){ #dots{display:none} }
+
+  /* ---- Contenido: mitad de pantalla, lado alterno al notebook ---- */
+  main{position:relative;z-index:1;pointer-events:none}
+  main a,main button,main p,main h1,main h2,main h3,main li,.skill-row,.xp-item,.edu-item,.hero-meta,.certs{pointer-events:auto}
+  section{min-height:100vh;display:flex;align-items:center;padding:14vh 4vw}
+  .wrap{width:100%;max-width:min(46vw,620px);text-shadow:0 2px 18px rgba(4,7,5,.9)}
+  .wrap.right{margin-left:auto}
+  @media(max-width:860px){ .wrap{max-width:100%} section{padding:12vh 7vw} }
+
+  .sec-head{display:flex;align-items:baseline;gap:1.2rem;border-bottom:1px solid var(--line);
+            padding-bottom:.85rem;margin-bottom:2.4rem}
+  .sec-head .num{font-family:var(--mono);font-size:.8rem;color:var(--acc)}
+  .sec-head h2{font-size:clamp(1.7rem,3.2vw,2.4rem);font-weight:700;letter-spacing:-.02em}
+  .sec-head .tag{margin-left:auto;font-family:var(--mono);font-size:.65rem;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}
+  @media(max-width:600px){.sec-head .tag{display:none}}
+
+  .label{font-family:var(--mono);font-size:.72rem;letter-spacing:.2em;color:var(--acc);text-transform:uppercase;margin-bottom:1.2rem}
+
+  /* ---- Hero ---- */
+  #inicio{padding-top:16vh}
+  h1{font-size:clamp(2.6rem,6.5vw,5rem);line-height:.98;letter-spacing:-.035em;font-weight:700}
+  h1 .ghost{color:transparent;-webkit-text-stroke:1.5px var(--ink)}
+  .hero-sub{margin-top:1.6rem;font-size:1.1rem;color:var(--dim);max-width:38ch;line-height:1.6}
+  .hero-sub strong{color:var(--ink);font-weight:500}
+  .hero-meta{display:flex;gap:1.5rem;margin-top:1.4rem;font-family:var(--mono);font-size:.72rem;color:var(--dim);letter-spacing:.08em;flex-wrap:wrap}
+  .hero-meta i{width:13px;height:13px;color:var(--acc)}
+  .hero-meta span{display:flex;align-items:center;gap:.45rem}
+
+  .scroll-hint{position:absolute;bottom:2.6rem;left:4vw;display:flex;align-items:center;gap:.9rem;pointer-events:none}
+  .scroll-hint .txt{font-family:var(--mono);font-size:.65rem;letter-spacing:.3em;color:var(--dim)}
+  .scroll-hint .bar{width:1px;height:56px;background:var(--line);position:relative;overflow:hidden}
+  .scroll-hint .bar::after{content:'';position:absolute;left:0;top:-40%;width:1px;height:40%;background:var(--acc);animation:drop 1.8s ease-in-out infinite}
+  @keyframes drop{0%{top:-40%}100%{top:110%}}
+
+  /* ---- Sobre mí ---- */
+  .about p{font-size:1.06rem;line-height:1.75;color:var(--dim);margin-bottom:1.3rem}
+  .about p strong{color:var(--ink);font-weight:500}
+  .about .facts{margin-top:2rem;display:flex;flex-direction:column;gap:.7rem}
+  .about .facts div{display:flex;gap:1rem;font-family:var(--mono);font-size:.78rem;border-bottom:1px dashed var(--line);padding-bottom:.7rem}
+  .about .facts b{color:var(--acc);font-weight:400;min-width:110px;flex-shrink:0}
+
+  /* ---- Proyectos ---- */
+  .proj{border-bottom:1px solid var(--line)}
+  .proj:first-of-type{border-top:1px solid var(--line)}
+  .proj-head{display:grid;grid-template-columns:2.6rem 1fr 1.5rem;align-items:center;gap:.8rem;
+             padding:1.1rem .3rem;cursor:pointer;background:none;border:none;color:inherit;font:inherit;text-align:left;width:100%}
+  .proj-head .n{font-family:var(--mono);font-size:.72rem;color:var(--dim)}
+  .proj-head h3{font-size:clamp(1rem,1.8vw,1.35rem);font-weight:500;letter-spacing:-.01em;transition:transform .3s,color .3s}
+  .proj-head .st{font-family:var(--mono);font-size:.64rem;color:var(--dim);letter-spacing:.05em;margin-top:.15rem}
+  .proj-head .ic{justify-self:end;color:var(--dim);transition:transform .35s,color .3s}
+  .proj-head .ic svg{width:15px;height:15px}
+  .proj:hover .proj-head h3{transform:translateX(6px);color:var(--acc)}
+  .proj:hover .proj-head .ic{color:var(--acc)}
+  .proj.open .proj-head .ic{transform:rotate(45deg)}
+  .proj-body{max-height:0;overflow:hidden;transition:max-height .5s cubic-bezier(.4,0,.2,1)}
+  .proj-body .inner{padding:0 .3rem 1.4rem 3.4rem}
+  .proj-body p{font-size:.92rem;line-height:1.65;color:var(--dim);margin-bottom:.8rem}
+  .proj-body .meta{font-family:var(--mono);font-size:.68rem;color:var(--ink);letter-spacing:.05em;display:flex;gap:1.3rem;flex-wrap:wrap;align-items:baseline}
+  .proj-body .meta b{color:var(--acc);font-weight:400;margin-right:.4rem}
+  .proj-body .meta a{color:var(--acc);text-decoration:none;border-bottom:1px solid transparent;transition:border-color .25s}
+  .proj-body .meta a:hover{border-bottom-color:var(--acc)}
+  @media(max-width:600px){ .proj-body .inner{padding-left:.3rem} }
+
+  /* ---- Habilidades ---- */
+  .skill-row{display:grid;grid-template-columns:150px 1fr;gap:1.3rem;padding:.95rem .3rem;border-bottom:1px dashed var(--line);transition:background .3s}
+  .skill-row:first-of-type{border-top:1px dashed var(--line)}
+  .skill-row:hover{background:var(--acc-soft)}
+  .skill-row .cat{font-family:var(--mono);font-size:.7rem;color:var(--acc);letter-spacing:.14em;text-transform:uppercase;padding-top:.25rem}
+  .skill-row .vals{font-size:.95rem;line-height:1.75;color:var(--ink)}
+  .skill-row .vals i{font-style:normal;color:var(--dim);margin:0 .45rem}
+  @media(max-width:600px){ .skill-row{grid-template-columns:1fr;gap:.25rem} }
+  .now-learning{margin-top:1.8rem;font-family:var(--mono);font-size:.75rem;color:var(--dim);line-height:1.8}
+  .now-learning b{color:var(--acc);font-weight:400}
+
+  /* ---- Educación ---- */
+  .edu-item{padding:1.4rem 0;border-bottom:1px solid var(--line)}
+  .edu-item h3{font-size:1.12rem;font-weight:500}
+  .edu-item .inst{font-family:var(--mono);font-size:.72rem;color:var(--dim);letter-spacing:.08em;margin:.3rem 0 .6rem}
+  .edu-item p{font-size:.92rem;color:var(--dim);line-height:1.6}
+  .certs{margin-top:2.2rem}
+  .certs h3{font-family:var(--mono);font-size:.72rem;letter-spacing:.2em;color:var(--acc);text-transform:uppercase;margin-bottom:.9rem}
+  .certs li{list-style:none;display:flex;align-items:center;gap:.8rem;padding:.7rem 0;border-bottom:1px dashed var(--line);
+            font-size:.92rem;color:var(--ink)}
+  .certs li i{width:15px;height:15px;color:var(--acc);flex-shrink:0}
+  .certs li span{margin-left:auto;font-family:var(--mono);font-size:.68rem;color:var(--dim);text-align:right}
+  @media(max-width:600px){ .certs li span{display:none} }
+
+  /* ---- Contacto ---- */
+  #contacto{flex-direction:column;justify-content:flex-start;align-items:center;text-align:center;padding-top:18vh}
+  #contacto .wrap{max-width:780px;margin:0 auto}
+  .mail{display:inline-block;font-size:clamp(1.05rem,3.2vw,2.3rem);font-weight:700;letter-spacing:-.02em;
+        color:var(--ink);text-decoration:none;margin:1.2rem 0 1rem;position:relative;transition:color .3s;word-break:break-word}
+  .mail::after{content:'';position:absolute;left:0;bottom:-6px;height:2px;width:100%;background:var(--acc);
+        transform:scaleX(0);transform-origin:left;transition:transform .45s cubic-bezier(.7,0,.2,1)}
+  .mail:hover{color:var(--acc)}
+  .mail:hover::after{transform:scaleX(1)}
+  .contact-meta{font-family:var(--mono);font-size:.8rem;color:var(--dim);letter-spacing:.06em;margin-bottom:2rem}
+  .contact-meta a{color:var(--dim);text-decoration:none;transition:color .25s}
+  .contact-meta a:hover{color:var(--acc)}
+  .socials{display:flex;gap:1.1rem;justify-content:center}
+  .socials a{width:46px;height:46px;border:1px solid var(--line);display:grid;place-items:center;color:var(--dim);transition:all .3s}
+  .socials a:hover{border-color:var(--acc);color:var(--acc);transform:translateY(-4px)}
+  .socials svg{width:19px;height:19px}
+
+  footer{position:relative;z-index:1;pointer-events:auto;border-top:1px solid var(--line);padding:1.6rem 4vw;
+         display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;
+         font-family:var(--mono);font-size:.68rem;color:var(--dim);letter-spacing:.08em;background:rgba(11,13,11,.6);backdrop-filter:blur(6px)}
+
+  /* ---- Reveal ---- */
+  .rv{opacity:0;transform:translateY(26px);transition:opacity .8s ease,transform .8s ease;transition-delay:var(--d,0s)}
+  .rv.in{opacity:1;transform:none}
+  @media(prefers-reduced-motion:reduce){ .rv{transition:none;opacity:1;transform:none} }
+</style>
+</head>
+<body class="locked">
+
+<!-- ============ PANTALLA DE CARGA (Pac-Man) ============ -->
+<div id="loader" role="status" aria-label="Cargando portafolio">
+  <div class="scene">
+    <div class="dots">
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    </div>
+    <div class="dots2">
+      <div class="dot2"></div><div class="dot2"></div><div class="dot2"></div><div class="dot2"></div><div class="dot2"></div>
+      <div class="dot2"></div><div class="dot2"></div><div class="dot2"></div><div class="dot2"></div><div class="dot2"></div>
+    </div>
+    <div class="circle"></div>
+  </div>
+  <p class="load-sub"><b id="loadPct">0%</b> · CARGANDO PORTAFOLIO</p>
+</div>
+
+<canvas id="gl"></canvas>
+
+<nav id="nav">
+  <a class="logo" href="#inicio">
+    <span class="box">AR</span>
+    <span class="name">ALEJANDRO ROJAS MUENA</span>
+  </a>
+  <div class="nav-links">
+    <a href="#sobre-mi" data-sec="sobre-mi">Sobre mí</a>
+    <a href="#proyectos" data-sec="proyectos">Proyectos</a>
+    <a href="#habilidades" data-sec="habilidades">Habilidades</a>
+    <a href="#educacion" data-sec="educacion">Educación</a>
+    <a class="cta" href="#contacto" data-sec="contacto">Contacto</a>
+  </div>
+</nav>
+
+<aside id="dots" aria-label="Navegación de secciones"></aside>
+
+<main>
+
+  <!-- ============ 01 · HERO (texto izq · notebook der) ============ -->
+  <section id="inicio">
+    <div class="wrap">
+      <p class="label rv" style="--d:.05s">// Portafolio — 2025</p>
+      <h1 class="rv" style="--d:.12s">Alejandro<br><span class="ghost">Rojas Muena</span></h1>
+      <p class="hero-sub rv" style="--d:.2s"><strong>Ingeniero en Informática.</strong> Desarrollo web y móvil de punta a punta: sitios en producción, sistemas a medida y aplicaciones Flutter.</p>
+      <div class="hero-meta rv" style="--d:.28s">
+        <span><i data-lucide="map-pin"></i>Peñalolén, RM · Chile</span>
+        <span><i data-lucide="smartphone"></i>Web &amp; Móvil</span>
+        <span><i data-lucide="zap"></i>Disponible para proyectos</span>
+      </div>
+    </div>
+    <div class="scroll-hint">
+      <span class="txt">SCROLL</span><span class="bar"></span>
+    </div>
+  </section>
+
+  <!-- ============ 02 · SOBRE MÍ (texto der · notebook izq) ============ -->
+  <section id="sobre-mi">
+    <div class="wrap right about">
+      <div class="sec-head rv"><span class="num">01</span><h2>Sobre mí</h2><span class="tag">whoami</span></div>
+      <p class="rv" style="--d:.05s">Vengo del mundo físico de las redes: soy <strong>técnico en telecomunicaciones</strong> — fibra óptica, creación de cable — y de ahí salté al software. Hoy soy <strong>Ingeniero de Ejecución en Informática</strong> titulado, y desarrollo web y móvil completos.</p>
+      <p class="rv" style="--d:.1s">Desde 2024 he entregado <strong>seis proyectos reales</strong>: un ERP de recursos humanos, el sistema de reservas de mi universidad, una app móvil de salud para una startup y sitios web en producción para clientes. Me muevo cómodo entre el frontend, el backend y la base de datos.</p>
+      <div class="facts rv" style="--d:.15s">
+        <div><b>título</b><span>Ingeniero de Ejecución en Informática · UDLA</span></div>
+        <div><b>base técnica</b><span>Técnico en Telecomunicaciones · fibra óptica</span></div>
+        <div><b>proyectos</b><span>6 entregados entre 2024 y 2026</span></div>
+        <div><b>foco</b><span>Web completa + apps móviles (Flutter)</span></div>
+        <div><b>modo</b><span>Remoto o híbrido · Peñalolén, Santiago</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 03 · PROYECTOS (texto izq · notebook der) ============ -->
+  <section id="proyectos">
+    <div class="wrap">
+      <div class="sec-head rv"><span class="num">02</span><h2>Proyectos</h2><span class="tag">ls ~/proyectos</span></div>
+
+      <div class="proj rv">
+        <button class="proj-head">
+          <span class="n">001</span>
+          <span><h3>Los Deleites de Carlita</h3><div class="st">Web · Supabase · Panel Admin</div></span>
+          <span class="ic"><i data-lucide="plus"></i></span>
+        </button>
+        <div class="proj-body"><div class="inner">
+          <p>Sitio web para una pastelería: landing page pública conectada a Supabase, con base de datos en la nube y un panel de administración para gestionar el contenido sin tocar código.</p>
+          <div class="meta"><span><b>AÑO</b>ABR 2026</span><span><b>ROL</b>Desarrollo completo</span>
+            <a href="https://losdeleitesdecarlita.cl/" target="_blank" rel="noopener">VISITAR SITIO ↗</a></div>
+        </div></div>
+      </div>
+
+      <div class="proj rv" style="--d:.04s">
+        <button class="proj-head">
+          <span class="n">002</span>
+          <span><h3>PraxisDigital</h3><div class="st">Next.js · Web corporativa</div></span>
+          <span class="ic"><i data-lucide="plus"></i></span>
+        </button>
+        <div class="proj-body"><div class="inner">
+          <p>Desarrollo del frontend para el sitio web corporativo de PraxisDigital, construido en Next.js.</p>
+          <div class="meta"><span><b>AÑO</b>ENE 2026</span><span><b>ROL</b>Frontend</span>
+            <a href="https://praxisdigital.cl/" target="_blank" rel="noopener">VISITAR SITIO ↗</a></div>
+        </div></div>
+      </div>
+
+      <div class="proj rv" style="--d:.08s">
+        <button class="proj-head">
+          <span class="n">003</span>
+          <span><h3>StudyRoom</h3><div class="st">Sistema web · Reservas</div></span>
+          <span class="ic"><i data-lucide="plus"></i></span>
+        </button>
+        <div class="proj-body"><div class="inner">
+          <p>Proyecto de título: sistema web para reservar salas de estudio en la Universidad de las Américas. Mi trabajo de titulación como Ingeniero de Ejecución en Informática.</p>
+          <div class="meta"><span><b>PERÍODO</b>SEP — DIC 2025</span><span><b>ROL</b>Proyecto de título</span></div>
+        </div></div>
+      </div>
+
+      <div class="proj rv" style="--d:.12s">
+        <button class="proj-head">
+          <span class="n">004</span>
+          <span><h3>Dr. 911 — App Móvil</h3><div class="st">Flutter · Salud digital</div></span>
+          <span class="ic"><i data-lucide="plus"></i></span>
+        </button>
+        <div class="proj-body"><div class="inner">
+          <p>Práctica profesional en Dr. 911, startup de medicina: desarrollo de una aplicación móvil para la detección visual de Herpes Zoster.</p>
+          <div class="meta"><span><b>PERÍODO</b>SEP — DIC 2025</span><span><b>ROL</b>Desarrollador móvil</span></div>
+        </div></div>
+      </div>
+
+      <div class="proj rv" style="--d:.16s">
+        <button class="proj-head">
+          <span class="n">005</span>
+          <span><h3>Bramal — Reportes de Obras</h3><div class="st">Fullstack · Construcción</div></span>
+          <span class="ic"><i data-lucide="plus"></i></span>
+        </button>
+        <div class="proj-body"><div class="inner">
+          <p>Práctica laboral en Bramal Ingeniería y Construcción: actualización de componentes backend y frontend del sistema web de reportes de obras de la empresa.</p>
+          <div class="meta"><span><b>PERÍODO</b>SEP — DIC 2024</span><span><b>ROL</b>Fullstack</span></div>
+        </div></div>
+      </div>
+
+      <div class="proj rv" style="--d:.2s">
+        <button class="proj-head">
+          <span class="n">006</span>
+          <span><h3>Getsper — ERP / CRM</h3><div class="st">Fullstack · RR.HH.</div></span>
+          <span class="ic"><i data-lucide="plus"></i></span>
+        </button>
+        <div class="proj-body"><div class="inner">
+          <p>Desarrollo fullstack — frontend y backend — de un ERP y CRM a medida para la gestión de recursos humanos.</p>
+          <div class="meta"><span><b>PERÍODO</b>MAR — JUL 2024</span><span><b>ROL</b>Fullstack</span></div>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 04 · HABILIDADES (texto der · notebook izq) ============ -->
+  <section id="habilidades">
+    <div class="wrap right">
+      <div class="sec-head rv"><span class="num">03</span><h2>Habilidades</h2><span class="tag">cat skills.txt</span></div>
+
+      <div class="skill-row rv"><div class="cat">Frontend</div><div class="vals">HTML<i>·</i>CSS<i>·</i>Tailwind<i>·</i>React<i>·</i>Next.js</div></div>
+      <div class="skill-row rv" style="--d:.04s"><div class="cat">Lenguajes</div><div class="vals">JavaScript<i>·</i>TypeScript<i>·</i>C#<i>·</i>PHP<i>·</i>Python<i>·</i>Dart</div></div>
+      <div class="skill-row rv" style="--d:.08s"><div class="cat">Backend</div><div class="vals">.NET (C#)<i>·</i>PHP<i>·</i>Django</div></div>
+      <div class="skill-row rv" style="--d:.12s"><div class="cat">Móvil</div><div class="vals">Flutter (Dart)</div></div>
+      <div class="skill-row rv" style="--d:.16s"><div class="cat">Datos &amp; Cloud</div><div class="vals">SQL (MySQL Workbench)<i>·</i>Firebase<i>·</i>Supabase</div></div>
+      <div class="skill-row rv" style="--d:.2s"><div class="cat">Herramientas</div><div class="vals">Git<i>·</i>GitHub<i>·</i>Vite<i>·</i>VS Code</div></div>
+      <div class="skill-row rv" style="--d:.24s"><div class="cat">Redes &amp; Telecom</div><div class="vals">Fibra óptica<i>·</i>Creación de cable<i>·</i>Telecomunicaciones</div></div>
+
+      <p class="now-learning rv" style="--d:.28s"><b>$ base técnica →</b> técnico en telecomunicaciones: del cable de fibra a la nube</p>
+    </div>
+  </section>
+
+  <!-- ============ 05 · EDUCACIÓN (texto izq · notebook der) ============ -->
+  <section id="educacion">
+    <div class="wrap">
+      <div class="sec-head rv"><span class="num">04</span><h2>Educación</h2><span class="tag">--formal</span></div>
+      <div class="edu-item rv">
+        <h3>Ingeniero de Ejecución en Informática</h3>
+        <div class="inst">UNIVERSIDAD DE LAS AMÉRICAS · 2022 — 2025</div>
+        <p>Titulado y Licenciado en Ingeniería Informática. Proyecto de título: StudyRoom, sistema web de reserva de salas de estudio.</p>
+      </div>
+      <div class="edu-item rv" style="--d:.06s">
+        <h3>Técnico en Telecomunicaciones</h3>
+        <div class="inst">LICEO POLITECNICO PEDRO DE VALDIVIA · 2019 — 2020</div>
+        <p>Enseñanza media técnico profesional. Práctica profesional en GTD.</p>
+      </div>
+      <div class="certs rv" style="--d:.12s">
+        <h3>Cursos y certificaciones</h3>
+        <ul>
+          <li><i data-lucide="award"></i>Curso de Supervisor de Seguridad — 120 horas<span>2025</span></li>
+          <li><i data-lucide="award"></i>Curso de Guardia de Seguridad — 90 horas · OS-10 al día<span>2025</span></li>
+          <li><i data-lucide="award"></i>Cinta Negra en Karate Shotokan — Asociación Japonesa de Karate<span>2021</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 06 · CONTACTO (texto arriba centro · notebook abajo) ============ -->
+  <section id="contacto">
+    <div class="wrap">
+      <p class="label rv">// ¿Trabajamos juntos?</p>
+      <a class="mail rv" style="--d:.05s" href="mailto:muena.rojas.alejandro@gmail.com">muena.rojas.alejandro@gmail.com</a>
+      <div class="contact-meta rv" style="--d:.1s"><a href="tel:+56994514223">+56 9 9451 4223</a> · Peñalolén, Región Metropolitana</div>
+      <div class="socials rv" style="--d:.15s">
+        <a href="https://github.com/" target="_blank" rel="noopener" aria-label="GitHub"><i data-lucide="github"></i></a>
+        <a href="https://www.linkedin.com/" target="_blank" rel="noopener" aria-label="LinkedIn"><i data-lucide="linkedin"></i></a>
+        <a href="https://wa.me/56994514223" target="_blank" rel="noopener" aria-label="WhatsApp"><i data-lucide="message-circle"></i></a>
+        <a href="mailto:muena.rojas.alejandro@gmail.com" aria-label="Email"><i data-lucide="mail"></i></a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>© 2025 ALEJANDRO ROJAS MUENA · PEÑALOLÉN, CL</span>
+  <span>PORTAFOLIO · BUILD 2025</span>
+</footer>
+
+<!-- Red de seguridad: si algún CDN falla y el módulo no arranca,
+     el loader igual desaparece a los 7s y el contenido es visible. -->
+<script>
+  setTimeout(function(){
+    var l = document.getElementById('loader');
+    if (l) l.remove();
+    document.body.classList.remove('locked');
+  }, 7000);
+</script>
+
+<script src="https://unpkg.com/lucide@0.294.0/dist/umd/lucide.min.js"></script>
+<script src="https://unpkg.com/animejs@3.2.2/lib/anime.min.js"></script>
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+
+/* ============================================================
+   ESCENA — Notebook estilizado en la mitad vacía de la pantalla
+   ============================================================ */
+const canvas = document.getElementById('gl');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b0d0b);
+const camera = new THREE.PerspectiveCamera(40, 1, .1, 100);
+
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- RELOJ MAESTRO ----------
+   Un único acumulador de segundos. Todo lo animado en pantalla
+   (BIOS, typing, skills, timeline) es función pura de `elapsed`
+   y de marcas absolutas (bootAt, modeStarts). */
+let elapsed = 0, lastT = 0;
+let bootAt = null;            // instante en que el sistema "enciende" (al cerrar el loader)
+let lidReleased = false;      // la tapa no se abre hasta terminar la carga
+
+/* ---------- Luces ---------- */
+scene.add(new THREE.HemisphereLight(0x4a5a4e, 0x0c0e0c, .55));
+const key = new THREE.DirectionalLight(0xfff1e0, 1.5);
+key.position.set(4.5, 7, 5); key.castShadow = true;
+key.shadow.mapSize.set(1024, 1024);
+key.shadow.camera.left = key.shadow.camera.bottom = -6;
+key.shadow.camera.right = key.shadow.camera.top = 6;
+key.shadow.camera.far = 30; key.shadow.bias = -.0005;
+scene.add(key);
+const rim = new THREE.DirectionalLight(0x6fffab, .55);
+rim.position.set(-6, 3.5, -6); scene.add(rim);
+
+/* ---------- Suelo (solo sombra) + halo suave ---------- */
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40),
+  new THREE.ShadowMaterial({ opacity: .35 }));
+floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true;
+scene.add(floor);
+
+const glowTex = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const g = c.getContext('2d');
+  const gr = g.createRadialGradient(128, 128, 10, 128, 128, 128);
+  gr.addColorStop(0, 'rgba(70,220,140,.16)');
+  gr.addColorStop(.55, 'rgba(50,180,110,.05)');
+  gr.addColorStop(1, 'rgba(50,180,110,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 256, 256);
+  return new THREE.CanvasTexture(c);
+})();
+const glow = new THREE.Mesh(new THREE.PlaneGeometry(9, 9),
+  new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, depthWrite: false, toneMapped: false }));
+glow.position.set(0, 1, -2.6);
+scene.add(glow);
+
+/* ============================================================
+   PANTALLA DEL NOTEBOOK — canvas 2D redibujado cada frame
+   ============================================================ */
+const SW = 1024, SH = 640;
+const scrCanvas = document.createElement('canvas');
+scrCanvas.width = SW; scrCanvas.height = SH;
+const sg = scrCanvas.getContext('2d');
+const scrTex = new THREE.CanvasTexture(scrCanvas);
+scrTex.colorSpace = THREE.SRGBColorSpace;
+scrTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+
+/* polyfill por si el navegador no soporta roundRect */
+if (!sg.roundRect) sg.roundRect = function (x, y, w, h) { this.rect(x, y, w, h); };
+
+const C = { green: '#57ff9a', cream: '#e9ece3', dim: '#7c887e', amber: '#e8b34b', bg: '#081109' };
+const FONT = (px, w = 500) => `${w} ${px}px "IBM Plex Mono", monospace`;
+const MODE_LABEL = ['terminal', 'perfil.json', 'proyectos', 'skills --monitor', 'formacion.log', 'mail'];
+
+/* --- Datos que muestra la pantalla (desde el CV) --- */
+const TERM_LINES = [
+  { t: '$ whoami', c: 'cmd' },
+  { t: 'alejandro rojas muena', c: 'out' },
+  { t: '$ cat titulo.txt', c: 'cmd' },
+  { t: 'ing. de ejecución en informática — UDLA', c: 'out' },
+  { t: '$ ./iniciar-portafolio --secciones=6', c: 'cmd' },
+  { t: '[OK] usa el scroll para navegar', c: 'ok' },
+];
+const BIOS = ['NEXUS-BIOS v2.5.1', 'cpu ok · mem 16GB ok · gpu ok', 'montando portafolio...'];
+const JSON_LINES = [
+  ['{', 'punct'],
+  ['  "nombre": ', 'key'], ['"alejandro rojas muena",', 'str'],
+  ['  "titulo": ', 'key'], ['"ing. de ejecución en informática",', 'str'],
+  ['  "base": ', 'key'], ['"telecomunicaciones → software",', 'str'],
+  ['  "proyectos": ', 'key'], ['6,', 'num'],
+  ['  "stack": ', 'key'], ['["react","next","flutter",".net","django"],', 'str'],
+  ['  "ubicacion": ', 'key'], ['"peñalolén, santiago",', 'str'],
+  ['  "disponible": ', 'key'], ['true', 'num'],
+  ['}', 'punct'],
+];
+const LIST = [
+  ['001', 'los deleites de carlita', 'web · supabase · admin'],
+  ['002', 'praxisdigital', 'next.js · frontend'],
+  ['003', 'studyroom', 'sistema de reservas · udla'],
+  ['004', 'dr. 911', 'app móvil · flutter'],
+  ['005', 'bramal', 'fullstack · reportes de obras'],
+  ['006', 'getsper', 'erp / crm · rr.hh.'],
+];
+const SKILLS = [['frontend', 88], ['backend', 80], ['móvil · flutter', 75], ['datos & cloud', 78], ['herramientas', 85], ['redes & telecom', 90]];
+const TIMELINE = [
+  ['2025', 'título: ing. de ejecución en informática', 'universidad de las américas'],
+  ['2022 — 2025', 'ingeniería en informática', 'udla · memoria: studyroom'],
+  ['2019 — 2020', 'técnico en telecomunicaciones', 'l. pedro de valdivia · práctica en gtd'],
+  ['2021', 'cinta negra · karate shotokan', 'asociación japonesa de karate'],
+  ['2025', 'seguridad: supervisor + guardia (os-10)', '120 h · 90 h'],
+];
+
+/* Estado de pantalla */
+let screenMode = 0;
+const modeStarts = [0, 0, 0, 0, 0, 0];
+let termDone = REDUCED, skipBios = false;
+let trans = null;
+
+const easeOut = v => 1 - Math.pow(1 - Math.max(0, Math.min(1, v)), 3);
+
+function drawScreenFrame(mode) {
+  sg.fillStyle = '#050705'; sg.fillRect(0, 0, SW, SH);
+  sg.fillStyle = C.bg; sg.fillRect(36, 36, SW - 72, SH - 72);
+  sg.fillStyle = '#1d2a20'; sg.beginPath(); sg.arc(SW / 2, 19, 5, 0, 7); sg.fill();
+  sg.fillStyle = 'rgba(255,255,255,.016)';
+  for (let y = 36; y < SH - 36; y += 4) sg.fillRect(36, y, SW - 72, 1);
+  sg.font = FONT(19); sg.textAlign = 'right'; sg.fillStyle = 'rgba(120,255,170,.45)';
+  sg.fillText(`${MODE_LABEL[mode]} · ${String(mode + 1).padStart(2, '0')}/06`, SW - 56, 68);
+  sg.textAlign = 'left';
+}
+
+function drawMode(g, mode, alpha, dy) {
+  const tm = elapsed - modeStarts[mode];   // reloj del modo: transcurrido, nunca absoluto
+  g.save();
+  g.globalAlpha = alpha;
+  g.translate(0, dy);
+  g.beginPath(); g.rect(36, 36, SW - 72, SH - 72); g.clip();
+  const x = 64, lh = 36;
+
+  if (mode === 0) { /* ---------- TERMINAL (reloj = arranque del sistema) ---------- */
+    const bt = bootAt === null ? -1 : elapsed - bootAt;
+    const STEP = .3, TYPE = 55;
+    const biosDur = (BIOS.length - 1) * STEP + .45;
+    if (bt < 0) {
+      // aún cargando: solo un cursor parpadeando en pantalla oscura
+      if ((elapsed * 2) % 2 < 1) { g.fillStyle = C.dim; g.fillRect(x, 78, 13, 26); }
+    } else {
+      // BIOS: aparece línea a línea desde el instante exacto del arranque
+      for (let i = 0; i < BIOS.length; i++) {
+        if (bt > i * STEP) { g.font = FONT(24); g.fillStyle = C.dim; g.fillText(BIOS[i], x, 92 + i * lh); }
+      }
+      // terminal escribiéndose
+      const delay = skipBios ? .1 : biosDur;
+      const budget = termDone ? 1e9 : Math.floor(Math.max(0, bt - delay) * TYPE);
+      let y = 92 + BIOS.length * lh + 14, used = 0, all = true, lastX = x, lastY = y;
+      for (const ln of TERM_LINES) {
+        const show = Math.max(0, Math.min(ln.t.length, budget - used));
+        used += ln.t.length + 4;
+        if (show < ln.t.length) all = false;
+        if (show <= 0) break;
+        g.font = ln.c === 'cmd' ? FONT(26, 600) : FONT(26);
+        g.fillStyle = ln.c === 'cmd' ? C.cream : ln.c === 'ok' ? C.green : C.dim;
+        const part = ln.t.slice(0, show);
+        g.fillText(part, x, y);
+        lastX = x + g.measureText(part).width; lastY = y;
+        y += lh + 4;
+      }
+      if (all) termDone = true;
+      if ((elapsed * 2) % 2 < 1) { g.fillStyle = C.green; g.fillRect(lastX + 10, lastY - 21, 13, 26); }
+    }
+
+  } else if (mode === 1) { /* ---------- PERFIL.JSON ---------- */
+    const jsonColor = k => k === 'key' ? C.green : k === 'str' ? C.cream : k === 'num' ? C.amber : C.dim;
+    let col = null, y = 96 - lh;
+    for (let i = 0; i < JSON_LINES.length; i++) {
+      const [txt, cls] = JSON_LINES[i];
+      const a = REDUCED ? 1 : easeOut(tm * 5 - i * .45);
+      if (cls === 'key') { if (a > 0) col = txt; continue; }
+      y += lh;
+      if (a <= 0) { col = null; continue; }
+      g.globalAlpha = alpha * a;
+      g.font = FONT(26);
+      if (col) { g.fillStyle = jsonColor('key'); g.fillText(col, x, y); }
+      g.fillStyle = jsonColor(cls);
+      g.fillText(txt, x + (col ? g.measureText(col).width : 0), y);
+      col = null;
+      g.globalAlpha = alpha;
+    }
+
+  } else if (mode === 2) { /* ---------- LISTA DE PROYECTOS ---------- */
+    g.font = FONT(24, 600); g.fillStyle = C.dim;
+    g.fillText('~/proyectos', x, 84);
+    g.fillStyle = C.green; g.fillText('(6)', x + 190, 84);
+    const active = Math.floor(elapsed * .8) % LIST.length;
+    for (let i = 0; i < LIST.length; i++) {
+      const y = 128 + i * 80;
+      const on = i === active;
+      if (on) {
+        g.fillStyle = 'rgba(87,255,154,.12)'; g.fillRect(48, y - 30, SW - 96 - 60, 62);
+        g.fillStyle = C.green; g.fillRect(48, y - 30, 5, 62);
+      }
+      g.font = FONT(21); g.fillStyle = on ? C.green : C.dim;
+      g.fillText(LIST[i][0], x, y - 4);
+      g.font = FONT(25, 600); g.fillStyle = on ? C.cream : 'rgba(233,236,227,.75)';
+      g.fillText(LIST[i][1], x + 70, y - 4);
+      g.font = FONT(19); g.fillStyle = C.dim;
+      g.fillText(LIST[i][2], x + 70, y + 22);
+    }
+
+  } else if (mode === 3) { /* ---------- MONITOR DE SKILLS ---------- */
+    g.font = FONT(24, 600); g.fillStyle = C.dim;
+    g.fillText('$ skills --monitor', x, 84);
+    SKILLS.forEach(([name, pct], i) => {
+      const y = 132 + i * 78;
+      const a = REDUCED ? 1 : easeOut(tm * 4 - i * .3);
+      g.globalAlpha = alpha * a;
+      g.font = FONT(24); g.fillStyle = C.cream;
+      g.fillText(name.padEnd(16, ' '), x, y);
+      const bx = x + 280, bw = 520, bh = 24;
+      g.fillStyle = 'rgba(233,236,227,.08)';
+      g.fillRect(bx, y - 19, bw, bh);
+      const fill = bw * (pct / 100) * easeOut(tm * 1.2 - i * .12);
+      g.fillStyle = C.green; g.fillRect(bx, y - 19, Math.max(0, fill), bh);
+      const sh = ((elapsed * .45 + i * .17) % 1) * Math.max(0, fill);
+      g.fillStyle = 'rgba(255,255,255,.22)'; g.fillRect(bx + sh, y - 19, 26, bh);
+      g.font = FONT(22); g.fillStyle = C.dim;
+      g.fillText(`${Math.round(pct * easeOut(tm * 1.2 - i * .12))}%`, bx + bw + 20, y);
+      g.globalAlpha = alpha;
+    });
+
+  } else if (mode === 4) { /* ---------- LÍNEA DE TIEMPO ---------- */
+    g.font = FONT(24, 600); g.fillStyle = C.dim;
+    g.fillText('formacion.log', x, 84);
+    const lx = 120;
+    g.strokeStyle = 'rgba(87,255,154,.3)'; g.lineWidth = 3;
+    g.beginPath(); g.moveTo(lx, 110); g.lineTo(lx, 560); g.stroke();
+    TIMELINE.forEach(([year, title, sub], i) => {
+      const y = 130 + i * 92;
+      const a = REDUCED ? 1 : easeOut(tm * 4 - i * .55);
+      if (a <= 0) return;
+      g.globalAlpha = alpha * a;
+      g.fillStyle = C.green; g.beginPath(); g.arc(lx, y - 8, 8, 0, 7); g.fill();
+      g.fillStyle = C.bg; g.beginPath(); g.arc(lx, y - 8, 3.4, 0, 7); g.fill();
+      g.font = FONT(19); g.fillStyle = C.green;
+      g.fillText(year, lx + 34, y - 22);
+      g.font = FONT(25, 600); g.fillStyle = C.cream;
+      g.fillText(title, lx + 34, y + 4);
+      g.font = FONT(19); g.fillStyle = C.dim;
+      g.fillText(sub, lx + 34, y + 28);
+      g.globalAlpha = alpha;
+    });
+
+  } else if (mode === 5) { /* ---------- CORREO ---------- */
+    const win = { x: 60, y: 78, w: SW - 120, h: 470 };
+    g.fillStyle = '#0a130d'; g.strokeStyle = 'rgba(233,236,227,.14)'; g.lineWidth = 2;
+    g.beginPath(); g.roundRect(win.x, win.y, win.w, win.h, 14); g.fill(); g.stroke();
+    g.fillStyle = 'rgba(233,236,227,.06)'; g.fillRect(win.x + 2, win.y + 2, win.w - 4, 46);
+    ['#3a443c', '#3a443c', C.green].forEach((col, i) => {
+      g.fillStyle = col; g.beginPath(); g.arc(win.x + 34 + i * 26, win.y + 25, 6, 0, 7); g.fill();
+    });
+    g.font = FONT(20); g.fillStyle = C.dim;
+    g.fillText('nuevo mensaje', win.x + 130, win.y + 32);
+    let y = win.y + 96;
+    const field = (k, v) => {
+      g.font = FONT(23); g.fillStyle = C.green; g.fillText(k, win.x + 32, y);
+      g.fillStyle = C.cream; g.fillText(v, win.x + 130, y); y += 42;
+      g.strokeStyle = 'rgba(233,236,227,.09)';
+      g.beginPath(); g.moveTo(win.x + 30, y - 20); g.lineTo(win.x + win.w - 30, y - 20); g.stroke();
+    };
+    field('para:', 'muena.rojas.alejandro@gmail.com');
+    field('asunto:', 'hola alejandro — proyecto');
+    g.font = FONT(23); g.fillStyle = C.dim;
+    g.fillText('vi tu portafolio y me gustaría conversar', win.x + 32, y + 12);
+    g.fillText('sobre un desarrollo web / móvil.', win.x + 32, y + 46);
+    const pulse = REDUCED ? 1 : .72 + .28 * Math.sin(elapsed * 3.2);
+    const bw2 = 210, bx = win.x + win.w - bw2 - 30, by = win.y + win.h - 78;
+    g.globalAlpha = alpha * pulse;
+    g.fillStyle = C.green;
+    g.beginPath(); g.roundRect(bx, by, bw2, 52, 8); g.fill();
+    g.font = FONT(23, 700); g.fillStyle = '#06120a';
+    g.fillText('ENVIAR  ▸', bx + 54, by + 33);
+    g.globalAlpha = alpha;
+  }
+  g.restore();
+}
+
+function drawScreen() {
+  drawScreenFrame(screenMode);
+  if (trans) {
+    const t = easeOut(Math.min(1, trans.t));
+    drawMode(sg, trans.from, 1 - t, -t * 40);
+    drawMode(sg, trans.to, t, (1 - t) * 40);
+    const sy = 36 + Math.min(1, trans.t) * (SH - 72);
+    sg.fillStyle = 'rgba(120,255,170,.07)'; sg.fillRect(36, sy - 26, SW - 72, 52);
+    sg.fillStyle = 'rgba(120,255,170,.35)'; sg.fillRect(36, sy - 1, SW - 72, 2);
+  } else {
+    drawMode(sg, screenMode, 1, 0);
+  }
+  scrTex.needsUpdate = true;
+}
+
+function setScreenMode(m) {
+  if (m === screenMode || m < 0 || m >= MODE_LABEL.length) return;
+  if (m === 0) skipBios = true;
+  trans = { from: screenMode, to: m, t: 0 };
+  screenMode = m;
+  modeStarts[m] = elapsed;
+}
+
+/* ============================================================
+   EL NOTEBOOK — base, teclado instanciado, tapa con bisagra
+   ============================================================ */
+const laptop = new THREE.Group();
+scene.add(laptop);
+
+const bodyMat = new THREE.MeshStandardMaterial({ color: 0x1a1d1a, roughness: .42, metalness: .6 });
+const darkMat = new THREE.MeshStandardMaterial({ color: 0x101210, roughness: .55, metalness: .35 });
+const keyMat = new THREE.MeshStandardMaterial({ color: 0x232823, roughness: .5, metalness: .25 });
+
+const base = new THREE.Mesh(new THREE.BoxGeometry(3.2, .12, 2.1), bodyMat);
+base.position.y = .06; base.castShadow = true; base.receiveShadow = true;
+laptop.add(base);
+
+/* --- Teclado: teclas instanciadas con anchos reales por fila --- */
+const KEY_ROWS = [
+  { z: -.70, keys: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1] },
+  { z: -.51, keys: [1.5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.5] },
+  { z: -.32, keys: [1.8, 1, 1, 1, 1, 1, 1, 1, 1, 1.8] },
+  { z: -.13, keys: [2.3, 1, 1, 1, 1, 1, 1, 1, 2.3] },
+  { z: .08,  keys: [1.3, 1.2, 1.2, 1.2, 6.6, 1.2, 1.2, 1.3] },
+];
+const U = .18;
+{
+  const count = KEY_ROWS.reduce((s, r) => s + r.keys.length, 0);
+  const keys = new THREE.InstancedMesh(new THREE.BoxGeometry(.16, .035, .15), keyMat, count);
+  keys.castShadow = true;
+  const d = new THREE.Object3D();
+  let i = 0;
+  for (const row of KEY_ROWS) {
+    const total = row.keys.reduce((s, w) => s + w, 0) * U;
+    let x = -total / 2;
+    for (const w of row.keys) {
+      d.position.set(x + U * w / 2, .146, row.z);
+      d.scale.set((U * w - .02) / .16, 1, 1);
+      d.rotation.set(0, 0, 0);
+      d.updateMatrix();
+      keys.setMatrixAt(i++, d.matrix);
+      x += U * w;
+    }
+  }
+  laptop.add(keys);
+}
+const kbGlow = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 1.34),
+  new THREE.MeshBasicMaterial({ color: 0x123f26, transparent: true, opacity: .8, blending: THREE.AdditiveBlending, depthWrite: false }));
+kbGlow.rotation.x = -Math.PI / 2; kbGlow.position.set(0, .1245, -.32);
+laptop.add(kbGlow);
+
+const pad = new THREE.Mesh(new THREE.BoxGeometry(1.12, .014, .5),
+  new THREE.MeshStandardMaterial({ color: 0x2a2f2a, roughness: .3, metalness: .5 }));
+pad.position.set(0, .128, .62);
+laptop.add(pad);
+
+const hinge = new THREE.Mesh(new THREE.CylinderGeometry(.045, .045, 3.05, 12), darkMat);
+hinge.rotation.z = Math.PI / 2; hinge.position.set(0, .12, -1.03); hinge.castShadow = true;
+laptop.add(hinge);
+
+/* --- Tapa --- */
+const lid = new THREE.Group();
+lid.position.set(0, .12, -1.02);
+laptop.add(lid);
+
+const lidBody = new THREE.Mesh(new THREE.BoxGeometry(3.2, 2.05, .07), bodyMat);
+lidBody.position.set(0, 1.02, 0); lidBody.castShadow = true;
+lid.add(lidBody);
+
+const screen = new THREE.Mesh(new THREE.PlaneGeometry(2.98, 1.86),
+  new THREE.MeshBasicMaterial({ map: scrTex, toneMapped: false }));
+screen.position.set(0, 1.02, .041);
+lid.add(screen);
+
+/* logo en la parte trasera de la tapa */
+const logoTex = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const g = c.getContext('2d');
+  g.strokeStyle = 'rgba(87,255,154,.9)'; g.lineWidth = 7;
+  g.beginPath(); g.arc(128, 128, 84, 0, 7); g.stroke();
+  g.font = '700 64px "IBM Plex Mono", monospace';
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillStyle = 'rgba(87,255,154,.95)';
+  g.fillText('AR', 128, 132);
+  return new THREE.CanvasTexture(c);
+})();
+const logo = new THREE.Mesh(new THREE.PlaneGeometry(.72, .72),
+  new THREE.MeshBasicMaterial({ map: logoTex, transparent: true, toneMapped: false }));
+logo.position.set(0, 1.02, -.041); logo.rotation.y = Math.PI;
+lid.add(logo);
+
+const screenLight = new THREE.PointLight(0x57ff9a, 2.4, 5, 2);
+screenLight.position.set(0, 1, .55);
+lid.add(screenLight);
+
+/* ============================================================
+   SCROLLYTELLING — poses del notebook por sección
+   ============================================================ */
+const KFS = [
+  { x:  1.85, y: 0,   ry: -.32, rx: -.02, s: 1,   lid: 1.08, ly: 1.15 }, // hero (texto izq)
+  { x: -1.85, y: 0,   ry:  .34, rx: -.02, s: 1,   lid: 1.14, ly: 1.15 }, // sobre mí (texto der)
+  { x:  1.80, y: 0,   ry: -.22, rx:  0,   s: .96, lid: 1.20, ly: 1.05 }, // proyectos (texto izq)
+  { x: -1.80, y: 0,   ry:  .30, rx: -.04, s: 1,   lid: 1.05, ly: 1.15 }, // habilidades (texto der)
+  { x:  1.80, y: .05, ry: -.38, rx: -.03, s: .98, lid: 1.12, ly: 1.15 }, // educación (texto izq)
+  { x:  0,    y: .08, ry:  .12, rx:  .05, s: .78, lid:  .92, ly: 2.20 }, // contacto (texto arriba)
+];
+const sections = [...document.querySelectorAll('main section')];
+let stops = [];
+function computeStops() {
+  const maxScroll = document.documentElement.scrollHeight - innerHeight;
+  stops = sections.map(s => {
+    const r = s.getBoundingClientRect();
+    return Math.min(r.top + scrollY + r.height / 2 - innerHeight / 2, maxScroll);
+  });
+  stops[0] = 0;
+}
+const smooth01 = v => { v = Math.max(0, Math.min(1, v)); return v * v * (3 - 2 * v); };
+function evalKF(sy) {
+  let i = 0;
+  while (i < stops.length - 1 && sy > stops[i + 1]) i++;
+  const a = KFS[i], b = KFS[Math.min(i + 1, KFS.length - 1)];
+  const span = (stops[i + 1] ?? stops[i] + 1) - stops[i] || 1;
+  const u = smooth01(Math.max(0, Math.min(1, (sy - stops[i]) / span)));
+  const out = {};
+  for (const k in a) out[k] = a[k] + (b[k] - a[k]) * u;
+  return out;
+}
+
+/* ---------- Interacción: arrastrar para girar el notebook ---------- */
+let dragging = false, lastX = 0, lastY = 0;
+let userRot = 0, userVel = 0, userTilt = 0;
+let mx = 0, my = 0, smx = 0, smy = 0;
+addEventListener('pointerdown', e => {
+  if (e.target.closest('a,button,nav,#dots,#loader,p,h1,h2,h3,li')) return;
+  dragging = true; lastX = e.clientX; lastY = e.clientY; userVel = 0;
+});
+addEventListener('pointermove', e => {
+  mx = e.clientX / innerWidth * 2 - 1;
+  my = e.clientY / innerHeight * 2 - 1;
+  if (dragging) {
+    const dx = e.clientX - lastX, dy = e.clientY - lastY;
+    lastX = e.clientX; lastY = e.clientY;
+    userRot += dx * .006; userVel = dx * .006;
+    userTilt = Math.max(-.3, Math.min(.3, userTilt + dy * .002));
+  }
+});
+addEventListener('pointerup', () => dragging = false);
+
+/* ---------- Bucle de render ---------- */
+let smScroll = 0;
+let currentActive = -1;   // se define ANTES del primer tick
+const cur = { x: 1.85, y: 0, ry: -.32, rx: -.02, s: 1, lid: .02, ly: 1.15 };
+let lidVel = 0;
+const lookAt = new THREE.Vector3();
+
+function tick(t) {
+  if (!lastT) lastT = t;
+  const dt = Math.min((t - lastT) / 1000 || .016, .05); lastT = t;
+  elapsed += dt;
+  const mobile = innerWidth < 860;
+
+  smScroll += (scrollY - smScroll) * .08;
+  const k = evalKF(smScroll);
+
+  /* muelles de pose */
+  const L = 1 - Math.exp(-dt * 5);
+  cur.x += ((mobile ? k.x * .3 : k.x) - cur.x) * L;
+  cur.y += (k.y - cur.y) * L;
+  cur.ry += (k.ry - cur.ry) * L;
+  cur.rx += (k.rx - cur.rx) * L;
+  cur.s += ((mobile ? k.s * .84 : k.s) - cur.s) * L;
+  cur.ly += (k.ly - cur.ly) * L;
+
+  /* la tapa se abre recién al terminar la pantalla de carga */
+  const lidTarget = lidReleased ? k.lid : .02;
+  lidVel += (lidTarget - cur.lid) * 42 * dt;
+  lidVel *= Math.exp(-dt * 7.5);
+  cur.lid = Math.max(0, Math.min(1.4, cur.lid + lidVel * dt));
+  lid.rotation.x = Math.PI / 2 - cur.lid;
+
+  smx += (mx - smx) * .06; smy += (my - smy) * .06;
+  if (!dragging) {
+    userVel *= Math.exp(-dt * 4);
+    userRot += userVel * dt * 60;
+    userRot *= Math.exp(-dt * 1.6);
+    userTilt *= Math.exp(-dt * 1.6);
+  }
+
+  const bob = REDUCED ? 0 : Math.sin(elapsed * 1.15) * .04;
+  const sway = REDUCED ? 0 : Math.sin(elapsed * .55) * .035;
+  laptop.position.set(cur.x, cur.y + bob, 0);
+  laptop.rotation.set(cur.rx + userTilt + smy * .03, cur.ry + userRot + sway + smx * .05, 0);
+  laptop.scale.setScalar(cur.s);
+
+  glow.position.x = laptop.position.x;
+  glow.position.y = laptop.position.y + .95;
+  glow.scale.setScalar(cur.s);
+
+  camera.position.set(
+    (mobile ? 0 : -k.x * .15) + smx * .12,
+    1.9 + smy * .1,
+    mobile ? 10.8 : 7.4
+  );
+  lookAt.set(k.x * .12, cur.ly, 0);
+  camera.lookAt(lookAt);
+
+  /* pantalla: cambio de modo según sección visible + transición */
+  if (currentActive >= 0 && currentActive !== screenMode) setScreenMode(currentActive);
+  if (trans) {
+    trans.t += dt / (REDUCED ? .1 : .38);
+    if (trans.t >= 1) trans = null;
+  }
+  drawScreen();
+
+  screenLight.intensity = 2.2 + Math.sin(elapsed * 1.7) * .3 + (trans ? 1.2 : 0);
+
+  renderer.render(scene, camera);
+  if (!canvas.classList.contains('ready')) canvas.classList.add('ready');
+}
+renderer.setAnimationLoop(tick);
+
+function resize() {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  computeStops();
+}
+addEventListener('resize', resize);
+resize();
+addEventListener('load', () => setTimeout(computeStops, 200));
+if (document.fonts?.ready) document.fonts.ready.then(() => { logoTex.needsUpdate = true; computeStops(); });
+
+/* ============================================================
+   PANTALLA DE CARGA — ciclo de vida
+   3 s de Pac-Man, sin opción de salto. Al terminar: fade out,
+   scroll desbloqueado, bootAt fija (arranca BIOS + typing) y
+   se abren los reveals.
+   ============================================================ */
+const MIN_LOAD = REDUCED ? 800 : 3000;
+const loadStart = performance.now();
+const pctEl = document.getElementById('loadPct');
+const pctTimer = setInterval(() => {
+  if (pctEl) pctEl.textContent = Math.min(99, Math.round((performance.now() - loadStart) / MIN_LOAD * 100)) + '%';
+}, 60);
+
+let loaderDone = false;
+function finishLoading() {
+  if (loaderDone) return;
+  loaderDone = true;
+  clearInterval(pctTimer);
+  if (pctEl) pctEl.textContent = '100%';
+  const loader = document.getElementById('loader');
+  if (loader) {
+    loader.classList.add('done');
+    setTimeout(() => loader.remove(), 700);
+  }
+  document.body.classList.remove('locked');
+  bootAt = elapsed;      // el BIOS y el $ whoami arrancan AQUÍ, siempre
+  lidReleased = true;    // la tapa se abre ahora
+  startReveals();
+}
+
+Promise.all([
+  new Promise(r => (document.readyState === 'complete' ? r() : addEventListener('load', r, { once: true }))),
+  (document.fonts?.ready ?? Promise.resolve()),
+  new Promise(r => setTimeout(r, MIN_LOAD)),
+]).then(finishLoading);
+
+/* ============================================================
+   INTERFAZ — nav, dots, reveals con anime.js, acordeón
+   ============================================================ */
+const labels = ['Inicio', 'Sobre mí', 'Proyectos', 'Habilidades', 'Educación', 'Contacto'];
+const dotsEl = document.getElementById('dots');
+labels.forEach((lb, i) => {
+  const b = document.createElement('button');
+  b.innerHTML = `<span class="tip">${lb}</span>`;
+  b.setAttribute('aria-label', lb);
+  b.addEventListener('click', () => sections[i].scrollIntoView({ behavior: 'smooth' }));
+  dotsEl.appendChild(b);
+});
+const dotBtns = [...dotsEl.children];
+const navLinks = [...document.querySelectorAll('.nav-links a')];
+
+function updateActive() {
+  let idx = 0;
+  sections.forEach((s, i) => {
+    const r = s.getBoundingClientRect();
+    if (r.top < innerHeight * .45) idx = i;
+  });
+  currentActive = idx;
+  dotBtns.forEach((b, i) => b.classList.toggle('active', i === idx));
+  navLinks.forEach(a => a.classList.toggle('active', a.dataset.sec === sections[idx].id));
+  document.getElementById('nav').classList.toggle('scrolled', scrollY > 40);
+}
+addEventListener('scroll', updateActive, { passive: true });
+updateActive();
+
+/* Reveals con anime.js — se activan al cerrar el loader */
+let revealsStarted = false;
+function startReveals() {
+  if (revealsStarted) return;
+  revealsStarted = true;
+  const hasAnime = typeof anime !== 'undefined';
+  const rvs = [...document.querySelectorAll('.rv')];
+  if (hasAnime && !REDUCED) rvs.forEach(el => el.style.opacity = 0);
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return;
+    const el = e.target;
+    io.unobserve(el);
+    if (hasAnime && !REDUCED) {
+      const d = parseFloat(getComputedStyle(el).getPropertyValue('--d')) || 0;
+      anime({
+        targets: el,
+        opacity: [0, 1],
+        translateY: [26, 0],
+        duration: 700,
+        delay: d * 1000,
+        easing: 'easeOutCubic',
+      });
+    } else el.classList.add('in');
+  }), { threshold: .12 });
+  rvs.forEach(el => io.observe(el));
+}
+
+/* Acordeón de proyectos (recalcula los stops del scrollytelling) */
+document.querySelectorAll('.proj-head').forEach(h => h.addEventListener('click', () => {
+  const item = h.parentElement, body = item.querySelector('.proj-body');
+  const wasOpen = item.classList.contains('open');
+  document.querySelectorAll('.proj.open').forEach(o => {
+    o.classList.remove('open');
+    o.querySelector('.proj-body').style.maxHeight = 0;
+  });
+  if (!wasOpen) { item.classList.add('open'); body.style.maxHeight = body.scrollHeight + 'px'; }
+  setTimeout(computeStops, 550);
+}));
+addEventListener('resize', () => {
+  document.querySelectorAll('.proj.open .proj-body').forEach(b => b.style.maxHeight = b.scrollHeight + 'px');
+  computeStops();
+});
+
+/* Iconos */
+if (window.lucide) lucide.createIcons();
+</script>
+</body>
+</html>
