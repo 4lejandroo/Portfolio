@@ -1,0 +1,239 @@
+/* ============================================================
+   PORTAFOLIO · ALEJANDRO ROJAS MUENA
+   Hoja de estilos principal (referenciada desde index.html)
+   ============================================================ */
+
+/* ---- Variables de diseño ---- */
+:root{
+  --bg:#0b0d0b;
+  --ink:#e9ece3;
+  --dim:#98a29a;
+  --acc:#57ff9a;
+  --acc-soft:rgba(87,255,154,.06);
+  --line:rgba(233,236,227,.13);
+  --mono:'IBM Plex Mono',monospace;
+  --sans:'Space Grotesk',sans-serif;
+}
+
+/* ---- Base ---- */
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body.locked{overflow:hidden}
+::selection{background:var(--acc);color:#06120a}
+
+/* ============================================================
+   PANTALLA DE CARGA — Pac-Man
+   ============================================================ */
+#loader{--pac:#FDD835;--dot-a:#1E88E5;--dot-b:#F44336;
+        position:fixed;inset:0;z-index:60;background:var(--bg);
+        display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.6rem;
+        transition:opacity .55s ease}
+#loader.done{opacity:0;pointer-events:none}
+/* escena: alto total 120px = 2 filas de 10px + Pac-Man de 100px */
+#loader .scene{position:relative;width:300px;height:120px}
+#loader .dots{position:relative;top:65px;display:flex;justify-content:center;align-items:center}
+#loader .dots2{position:relative;top:55px;display:flex;justify-content:center;align-items:center}
+#loader .dot{position:relative;width:10px;height:10px;margin:0 10px;border-radius:50%;
+             background:var(--dot-a);animation:dot1 5s linear 0s infinite normal}
+#loader .dot:nth-child(1){animation-delay:-.16s}
+#loader .dot:nth-child(2){animation-delay:.03s}
+#loader .dot:nth-child(3){animation-delay:.22s}
+#loader .dot:nth-child(4){animation-delay:.41s}
+#loader .dot:nth-child(5){animation-delay:.59s}
+#loader .dot:nth-child(6){animation-delay:.78s}
+#loader .dot:nth-child(7){animation-delay:.97s}
+#loader .dot:nth-child(8){animation-delay:1.16s}
+#loader .dot:nth-child(9){animation-delay:1.34s}
+#loader .dot:nth-child(10){animation-delay:1.53s}
+#loader .dot2{position:relative;width:10px;height:10px;margin:0 10px;border-radius:50%;
+              background:var(--dot-b);opacity:0;animation:dot2 5s linear 0s infinite normal}
+#loader .dot2:nth-child(1){animation-delay:4.08s}
+#loader .dot2:nth-child(2){animation-delay:3.89s}
+#loader .dot2:nth-child(3){animation-delay:3.71s}
+#loader .dot2:nth-child(4){animation-delay:3.52s}
+#loader .dot2:nth-child(5){animation-delay:3.33s}
+#loader .dot2:nth-child(6){animation-delay:3.14s}
+#loader .dot2:nth-child(7){animation-delay:2.96s}
+#loader .dot2:nth-child(8){animation-delay:2.77s}
+#loader .dot2:nth-child(9){animation-delay:2.58s}
+#loader .dot2:nth-child(10){animation-delay:2.39s}
+/* el Pac-Man: 0x0 con bordes de 50px → círculo de 100px */
+#loader .circle{position:relative;left:-100px;width:0;height:0;
+                border:50px solid var(--pac);border-radius:50%;border-right-color:transparent;
+                animation:move 5s linear 0s infinite normal}
+#loader .circle:before,#loader .circle:after{content:"";position:absolute;top:-50px;left:-50px;width:0;height:0;
+                border:50px solid var(--pac);border-radius:50%;border-right-color:transparent}
+#loader .circle:before{animation:chomp1 .25s ease-in-out 0s infinite normal}
+#loader .circle:after{animation:chomp2 .25s ease-in-out 0s infinite normal}
+#loader .load-sub{font-family:var(--mono);font-size:.68rem;letter-spacing:.22em;color:var(--dim)}
+#loader .load-sub b{color:var(--acc);font-weight:500}
+@keyframes chomp1{0%{transform:rotate(0)}50%{transform:rotate(45deg)}100%{transform:rotate(0)}}
+@keyframes chomp2{0%{transform:rotate(0)}50%{transform:rotate(-45deg)}100%{transform:rotate(0)}}
+@keyframes move{0%,100%{left:-100px}0%,48%{transform:rotateY(0)}50%,100%{transform:rotateY(180deg)}50%{left:100%}}
+@keyframes dot1{0%,4%{background:var(--dot-a);opacity:1}5%,94%{opacity:0}95%,100%{background:var(--dot-a);opacity:1}}
+@keyframes dot2{0%,4%{background:var(--dot-b);opacity:1}5%,94%{opacity:0}95%,100%{background:var(--dot-b);opacity:1}}
+
+/* ============================================================
+   Canvas 3D (notebook)
+   ============================================================ */
+#gl{position:fixed;inset:0;z-index:0;cursor:grab;opacity:0;transition:opacity 1s ease .1s}
+#gl.ready{opacity:1}
+#gl:active{cursor:grabbing}
+@media(max-width:860px){ #gl{opacity:0} #gl.ready{opacity:.35} }
+
+/* ============================================================
+   Navegación
+   ============================================================ */
+nav{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:space-between;
+    padding:1rem 2.2rem;transition:background .4s,border-color .4s;border-bottom:1px solid transparent}
+nav.scrolled{background:rgba(11,13,11,.72);backdrop-filter:blur(10px);border-bottom-color:var(--line)}
+.logo{display:flex;align-items:center;gap:.7rem;text-decoration:none;color:var(--ink)}
+.logo .box{width:34px;height:34px;border:1px solid var(--acc);display:grid;place-items:center;
+           font-family:var(--mono);font-size:.8rem;color:var(--acc);flex-shrink:0}
+.logo span.name{font-family:var(--mono);font-size:.75rem;letter-spacing:.14em;color:var(--dim)}
+.nav-links{display:flex;gap:1.8rem;align-items:center}
+.nav-links a{color:var(--dim);text-decoration:none;font-size:.85rem;letter-spacing:.02em;position:relative;transition:color .25s}
+.nav-links a::after{content:'';position:absolute;left:0;bottom:-4px;width:0;height:1px;background:var(--acc);transition:width .3s}
+.nav-links a:hover,.nav-links a.active{color:var(--ink)}
+.nav-links a:hover::after,.nav-links a.active::after{width:100%}
+.nav-links a.cta{border:1px solid var(--line);padding:.5rem 1rem;color:var(--ink)}
+.nav-links a.cta:hover{border-color:var(--acc);color:var(--acc)}
+.nav-links a.cta::after{display:none}
+@media(max-width:860px){ .nav-links a:not(.cta){display:none} nav{padding:.9rem 1.2rem} .logo span.name{display:none} }
+
+/* ============================================================
+   Dots laterales
+   ============================================================ */
+#dots{position:fixed;right:1.5rem;top:50%;transform:translateY(-50%);z-index:20;display:flex;flex-direction:column;gap:1rem}
+#dots button{width:9px;height:9px;border-radius:50%;border:1px solid var(--dim);background:transparent;cursor:pointer;
+             position:relative;transition:all .3s;padding:0}
+#dots button.active{background:var(--acc);border-color:var(--acc);transform:scale(1.35)}
+#dots button .tip{position:absolute;right:20px;top:50%;transform:translateY(-50%);white-space:nowrap;
+      font-family:var(--mono);font-size:.65rem;letter-spacing:.12em;color:var(--acc);opacity:0;transition:opacity .25s;pointer-events:none;text-transform:uppercase}
+#dots button:hover .tip{opacity:1}
+@media(max-width:860px){ #dots{display:none} }
+
+/* ============================================================
+   Contenido: mitad de pantalla, lado alterno al notebook
+   ============================================================ */
+main{position:relative;z-index:1;pointer-events:none}
+main a,main button,main p,main h1,main h2,main h3,main li,.skill-row,.xp-item,.edu-item,.hero-meta,.certs{pointer-events:auto}
+section{min-height:100vh;display:flex;align-items:center;padding:14vh 4vw}
+.wrap{width:100%;max-width:min(46vw,620px);text-shadow:0 2px 18px rgba(4,7,5,.9)}
+.wrap.right{margin-left:auto}
+@media(max-width:860px){ .wrap{max-width:100%} section{padding:12vh 7vw} }
+
+.sec-head{display:flex;align-items:baseline;gap:1.2rem;border-bottom:1px solid var(--line);
+          padding-bottom:.85rem;margin-bottom:2.4rem}
+.sec-head .num{font-family:var(--mono);font-size:.8rem;color:var(--acc)}
+.sec-head h2{font-size:clamp(1.7rem,3.2vw,2.4rem);font-weight:700;letter-spacing:-.02em}
+.sec-head .tag{margin-left:auto;font-family:var(--mono);font-size:.65rem;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}
+@media(max-width:600px){.sec-head .tag{display:none}}
+
+.label{font-family:var(--mono);font-size:.72rem;letter-spacing:.2em;color:var(--acc);text-transform:uppercase;margin-bottom:1.2rem}
+
+/* ---- Hero ---- */
+#inicio{padding-top:16vh}
+h1{font-size:clamp(2.6rem,6.5vw,5rem);line-height:.98;letter-spacing:-.035em;font-weight:700}
+h1 .ghost{color:transparent;-webkit-text-stroke:1.5px var(--ink)}
+.hero-sub{margin-top:1.6rem;font-size:1.1rem;color:var(--dim);max-width:38ch;line-height:1.6}
+.hero-sub strong{color:var(--ink);font-weight:500}
+.hero-meta{display:flex;gap:1.5rem;margin-top:1.4rem;font-family:var(--mono);font-size:.72rem;color:var(--dim);letter-spacing:.08em;flex-wrap:wrap}
+.hero-meta i{width:13px;height:13px;color:var(--acc)}
+.hero-meta span{display:flex;align-items:center;gap:.45rem}
+
+.scroll-hint{position:absolute;bottom:2.6rem;left:4vw;display:flex;align-items:center;gap:.9rem;pointer-events:none}
+.scroll-hint .txt{font-family:var(--mono);font-size:.65rem;letter-spacing:.3em;color:var(--dim)}
+.scroll-hint .bar{width:1px;height:56px;background:var(--line);position:relative;overflow:hidden}
+.scroll-hint .bar::after{content:'';position:absolute;left:0;top:-40%;width:1px;height:40%;background:var(--acc);animation:drop 1.8s ease-in-out infinite}
+@keyframes drop{0%{top:-40%}100%{top:110%}}
+
+/* ---- Sobre mí ---- */
+.about p{font-size:1.06rem;line-height:1.75;color:var(--dim);margin-bottom:1.3rem}
+.about p strong{color:var(--ink);font-weight:500}
+.about .facts{margin-top:2rem;display:flex;flex-direction:column;gap:.7rem}
+.about .facts div{display:flex;gap:1rem;font-family:var(--mono);font-size:.78rem;border-bottom:1px dashed var(--line);padding-bottom:.7rem}
+.about .facts b{color:var(--acc);font-weight:400;min-width:110px;flex-shrink:0}
+
+/* ============================================================
+   Proyectos
+   ============================================================ */
+.proj{border-bottom:1px solid var(--line)}
+.proj:first-of-type{border-top:1px solid var(--line)}
+.proj-head{display:grid;grid-template-columns:2.6rem 1fr 1.5rem;align-items:center;gap:.8rem;
+           padding:1.1rem .3rem;cursor:pointer;background:none;border:none;color:inherit;font:inherit;text-align:left;width:100%}
+.proj-head .n{font-family:var(--mono);font-size:.72rem;color:var(--dim)}
+.proj-head h3{font-size:clamp(1rem,1.8vw,1.35rem);font-weight:500;letter-spacing:-.01em;transition:transform .3s,color .3s}
+.proj-head .st{font-family:var(--mono);font-size:.64rem;color:var(--dim);letter-spacing:.05em;margin-top:.15rem}
+.proj-head .ic{justify-self:end;color:var(--dim);transition:transform .35s,color .3s}
+.proj-head .ic svg{width:15px;height:15px}
+.proj:hover .proj-head h3{transform:translateX(6px);color:var(--acc)}
+.proj:hover .proj-head .ic{color:var(--acc)}
+.proj.open .proj-head .ic{transform:rotate(45deg)}
+.proj-body{max-height:0;overflow:hidden;transition:max-height .5s cubic-bezier(.4,0,.2,1)}
+.proj-body .inner{padding:0 .3rem 1.4rem 3.4rem}
+.proj-body p{font-size:.92rem;line-height:1.65;color:var(--dim);margin-bottom:.8rem}
+.proj-body .meta{font-family:var(--mono);font-size:.68rem;color:var(--ink);letter-spacing:.05em;display:flex;gap:1.3rem;flex-wrap:wrap;align-items:baseline}
+.proj-body .meta b{color:var(--acc);font-weight:400;margin-right:.4rem}
+.proj-body .meta a{color:var(--acc);text-decoration:none;border-bottom:1px solid transparent;transition:border-color .25s}
+.proj-body .meta a:hover{border-bottom-color:var(--acc)}
+@media(max-width:600px){ .proj-body .inner{padding-left:.3rem} }
+
+/* ============================================================
+   Habilidades
+   ============================================================ */
+.skill-row{display:grid;grid-template-columns:150px 1fr;gap:1.3rem;padding:.95rem .3rem;border-bottom:1px dashed var(--line);transition:background .3s}
+.skill-row:first-of-type{border-top:1px dashed var(--line)}
+.skill-row:hover{background:var(--acc-soft)}
+.skill-row .cat{font-family:var(--mono);font-size:.7rem;color:var(--acc);letter-spacing:.14em;text-transform:uppercase;padding-top:.25rem}
+.skill-row .vals{font-size:.95rem;line-height:1.75;color:var(--ink)}
+.skill-row .vals i{font-style:normal;color:var(--dim);margin:0 .45rem}
+@media(max-width:600px){ .skill-row{grid-template-columns:1fr;gap:.25rem} }
+.now-learning{margin-top:1.8rem;font-family:var(--mono);font-size:.75rem;color:var(--dim);line-height:1.8}
+.now-learning b{color:var(--acc);font-weight:400}
+
+/* ============================================================
+   Educación
+   ============================================================ */
+.edu-item{padding:1.4rem 0;border-bottom:1px solid var(--line)}
+.edu-item h3{font-size:1.12rem;font-weight:500}
+.edu-item .inst{font-family:var(--mono);font-size:.72rem;color:var(--dim);letter-spacing:.08em;margin:.3rem 0 .6rem}
+.edu-item p{font-size:.92rem;color:var(--dim);line-height:1.6}
+.certs{margin-top:2.2rem}
+.certs h3{font-family:var(--mono);font-size:.72rem;letter-spacing:.2em;color:var(--acc);text-transform:uppercase;margin-bottom:.9rem}
+.certs li{list-style:none;display:flex;align-items:center;gap:.8rem;padding:.7rem 0;border-bottom:1px dashed var(--line);
+          font-size:.92rem;color:var(--ink)}
+.certs li i{width:15px;height:15px;color:var(--acc);flex-shrink:0}
+.certs li span{margin-left:auto;font-family:var(--mono);font-size:.68rem;color:var(--dim);text-align:right}
+@media(max-width:600px){ .certs li span{display:none} }
+
+/* ============================================================
+   Contacto
+   ============================================================ */
+#contacto{flex-direction:column;justify-content:flex-start;align-items:center;text-align:center;padding-top:18vh}
+#contacto .wrap{max-width:780px;margin:0 auto}
+.mail{display:inline-block;font-size:clamp(1.05rem,3.2vw,2.3rem);font-weight:700;letter-spacing:-.02em;
+      color:var(--ink);text-decoration:none;margin:1.2rem 0 1rem;position:relative;transition:color .3s;word-break:break-word}
+.mail::after{content:'';position:absolute;left:0;bottom:-6px;height:2px;width:100%;background:var(--acc);
+      transform:scaleX(0);transform-origin:left;transition:transform .45s cubic-bezier(.7,0,.2,1)}
+.mail:hover{color:var(--acc)}
+.mail:hover::after{transform:scaleX(1)}
+.contact-meta{font-family:var(--mono);font-size:.8rem;color:var(--dim);letter-spacing:.06em;margin-bottom:2rem}
+.contact-meta a{color:var(--dim);text-decoration:none;transition:color .25s}
+.contact-meta a:hover{color:var(--acc)}
+.socials{display:flex;gap:1.1rem;justify-content:center}
+.socials a{width:46px;height:46px;border:1px solid var(--line);display:grid;place-items:center;color:var(--dim);transition:all .3s}
+.socials a:hover{border-color:var(--acc);color:var(--acc);transform:translateY(-4px)}
+.socials svg{width:19px;height:19px}
+
+footer{position:relative;z-index:1;pointer-events:auto;border-top:1px solid var(--line);padding:1.6rem 4vw;
+       display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;
+       font-family:var(--mono);font-size:.68rem;color:var(--dim);letter-spacing:.08em;background:rgba(11,13,11,.6);backdrop-filter:blur(6px)}
+
+/* ============================================================
+   Reveal al hacer scroll
+   ============================================================ */
+.rv{opacity:0;transform:translateY(26px);transition:opacity .8s ease,transform .8s ease;transition-delay:var(--d,0s)}
+.rv.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){ .rv{transition:none;opacity:1;transform:none} }
